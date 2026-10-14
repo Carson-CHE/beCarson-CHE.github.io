@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="数学王国">
+<meta name="format-detection" content="telephone=no">
+<meta name="theme-color" content="#4A90E2">
+<title>数学王国 · 小学数学趣味学习平台</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- 漂浮装饰背景 -->
+<div class="bg-decor" id="bgDecor"></div>
+
+<!-- ===================== 登录 / 注册 ===================== -->
+<section id="authView" class="view active">
+  <div class="auth-card pop-in">
+    <div class="auth-logo">🏰</div>
+    <h1 class="auth-title">数学王国</h1>
+    <p class="auth-sub">小学 1 ~ 3 年级沉浸式数学乐园</p>
+    <div class="auth-tabs">
+      <button class="auth-tab active" data-tab="login">登 录</button>
+      <button class="auth-tab" data-tab="register">注 册</button>
+    </div>
+    <div class="auth-form">
+      <input type="text" id="authUser" placeholder="👤 用户名（2-12个字符）" maxlength="12" autocomplete="off">
+      <input type="password" id="authPass" placeholder="🔒 密码（至少4位）" maxlength="20">
+      <input type="password" id="authPass2" placeholder="🔒 确认密码" maxlength="20" style="display:none">
+      <button class="btn btn-primary btn-lg" id="authSubmit">开始冒险 🚀</button>
+      <p class="auth-msg" id="authMsg"></p>
+    </div>
+    <p class="auth-tip">✨ 账号数据保存在本机浏览器中</p>
+  </div>
+</section>
+
+<!-- ===================== 主应用 ===================== -->
+<section id="appView" class="view">
+  <!-- 顶栏 -->
+  <header class="topbar">
+    <div class="topbar-left" onclick="showView('dashboardView')">
+      <span class="logo">🏰</span><span class="logo-text">数学王国</span>
+    </div>
+    <nav class="topnav">
+      <button class="nav-btn active" data-nav="dashboardView">🏠 首页</button>
+      <button class="nav-btn" data-nav="learnView">📚 课程</button>
+      <button class="nav-btn" data-nav="wrongView">📒 错题本</button>
+      <button class="nav-btn" data-nav="achieveView">🏆 成就</button>
+      <button class="nav-btn" data-nav="statsView">📊 统计</button>
+    </nav>
+    <div class="topbar-right">
+      <div class="streak-pill" title="连续学习天数">🔥 <span id="streakNum">0</span> 天</div>
+      <div class="star-pill" title="累计星星">⭐ <span id="starNum">0</span></div>
+      <div class="user-chip" id="userChip">
+        <span class="user-avatar" id="userAvatar">🧒</span>
+        <span id="userName"></span>
+        <div class="user-menu" id="userMenu">
+          <button onclick="logout()">🚪 退出登录</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 首页仪表盘 -->
+  <div id="dashboardView" class="page active">
+    <div class="dash-hero pop-in">
+      <div class="dash-hello">
+        <h2 id="helloText">你好！</h2>
+        <p id="helloSub">今天也要开心学数学哦～</p>
+        <div class="level-wrap">
+          <div class="level-badge" id="levelBadge">Lv.1</div>
+          <div class="level-info">
+            <div class="level-name" id="levelName">数学小苗</div>
+            <div class="level-bar"><div class="level-fill" id="levelFill"></div></div>
+            <div class="level-xp" id="levelXp">0 / 100 XP</div>
+          </div>
+        </div>
+      </div>
+      <div class="goal-ring-wrap">
+        <svg class="goal-ring" viewBox="0 0 120 120">
+          <circle class="ring-bg" cx="60" cy="60" r="52"></circle>
+          <circle class="ring-fill" id="goalRing" cx="60" cy="60" r="52"></circle>
+        </svg>
+        <div class="goal-center">
+          <div class="goal-num" id="goalNum">0/20</div>
+          <div class="goal-label">今日答题目标</div>
+        </div>
+      </div>
+    </div>
+
+    <h3 class="section-title">🧭 为你推荐</h3>
+    <div class="reco-list" id="recoList"></div>
+
+    <h3 class="section-title">📚 我的课程进度</h3>
+    <div class="grade-cards" id="gradeCards"></div>
+
+    <h3 class="section-title">🚀 快捷入口</h3>
+    <div class="quick-grid">
+      <button class="quick-card q-oral" onclick="quickStart('oral')"><span class="quick-icon">⚡</span>口算大挑战<small>60秒极速口算</small></button>
+      <button class="quick-card q-practice" onclick="quickStart('practice')"><span class="quick-icon">✏️</span>数学练习<small>巩固知识点</small></button>
+      <button class="quick-card q-test" onclick="quickStart('test')"><span class="quick-icon">📝</span>数学测试<small>综合大闯关</small></button>
+      <button class="quick-card q-wrong" onclick="quickStart('retrain')"><span class="quick-icon">📒</span>错题重练<small>攻克薄弱点</small></button>
+    </div>
+  </div>
+
+  <!-- 课程页 -->
+  <div id="learnView" class="page">
+    <div class="grade-tabs" id="gradeTabs"></div>
+    <div class="unit-list" id="unitList"></div>
+  </div>
+
+  <!-- 错题本页 -->
+  <div id="wrongView" class="page">
+    <div class="wrong-head">
+      <div>
+        <h3 class="section-title" style="margin-top:0">📒 我的错题本</h3>
+        <p class="wrong-sub" id="wrongSub"></p>
+      </div>
+      <div class="wrong-actions">
+        <button class="btn btn-primary" id="retrainBtn" onclick="startRetrain()">▶️ 开始专项重练</button>
+        <button class="btn btn-ghost" id="clearMasteredBtn" onclick="clearMastered()">🧹 清空已掌握</button>
+      </div>
+    </div>
+    <div class="wrong-filter" id="wrongFilter"></div>
+    <div class="wrong-list" id="wrongList"></div>
+  </div>
+
+  <!-- 成就页 -->
+  <div id="achieveView" class="page">
+    <h3 class="section-title">🏆 成就勋章墙 <span class="ach-count" id="achCount"></span></h3>
+    <div class="ach-grid" id="achGrid"></div>
+  </div>
+
+  <!-- 统计页 -->
+  <div id="statsView" class="page">
+    <div class="stat-cards" id="statCards"></div>
+    <h3 class="section-title">📅 最近7天学习量</h3>
+    <div class="chart-box"><div class="bar-chart" id="weekChart"></div></div>
+    <h3 class="section-title">📖 各单元掌握情况</h3>
+    <div class="unit-stats" id="unitStats"></div>
+  </div>
+</section>
+
+<!-- ===================== 单元详情（选模式） ===================== -->
+<div class="modal-mask" id="unitModal">
+  <div class="modal-card pop-in">
+    <button class="modal-close" onclick="closeModal('unitModal')">✕</button>
+    <div class="unit-modal-head" id="umHead"></div>
+    <p class="unit-modal-desc" id="umDesc"></p>
+    <div class="unit-modal-progress" id="umProgress"></div>
+    <div class="mode-btns">
+      <button class="mode-btn m-oral" onclick="startQuiz('oral')"><span>⚡</span>口算<small>60秒计时</small></button>
+      <button class="mode-btn m-practice" onclick="startQuiz('practice')"><span>✏️</span>练习<small>10题巩固</small></button>
+      <button class="mode-btn m-test" onclick="startQuiz('test')"><span>📝</span>测试<small>10题检验</small></button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== 答题页 ===================== -->
+<section id="quizView" class="view">
+  <div class="quiz-top">
+    <button class="btn btn-ghost" onclick="quitQuiz()">✕ 退出</button>
+    <div class="quiz-title" id="quizTitle">口算挑战</div>
+    <div class="quiz-timer" id="quizTimer">⏱ 60</div>
+  </div>
+  <div class="quiz-progress"><div class="quiz-progress-fill" id="quizProgressFill"></div></div>
+
+  <div class="quiz-card" id="quizCard">
+    <div class="quiz-streak" id="quizStreak"></div>
+    <div class="quiz-q" id="quizQ"></div>
+    <div class="quiz-choices" id="quizChoices"></div>
+    <div class="quiz-input-wrap" id="quizInputWrap">
+      <input type="number" id="quizInput" class="quiz-input" placeholder="?" autocomplete="off">
+      <div class="keypad" id="keypad"></div>
+    </div>
+    <div class="quiz-actions">
+      <button class="btn btn-hint" id="hintBtn" onclick="showHint()">💡 提示</button>
+      <button class="btn btn-primary" id="quizSubmit" onclick="submitAnswer()">确定 ✔</button>
+    </div>
+    <div class="quiz-feedback" id="quizFeedback"></div>
+  </div>
+</section>
+
+<!-- ===================== 结果页 ===================== -->
+<section id="resultView" class="view">
+  <div class="result-card pop-in">
+    <div class="result-emoji" id="resultEmoji">🎉</div>
+    <h2 id="resultTitle">太棒了！</h2>
+    <div class="result-stars" id="resultStars"></div>
+    <div class="result-score" id="resultScore"></div>
+    <div class="result-detail" id="resultDetail"></div>
+    <div class="result-wrongtip" id="resultWrongTip"></div>
+    <div class="result-review" id="resultReview"></div>
+    <div class="result-btns">
+      <button class="btn btn-primary" id="resultRetry">🔁 再来一次</button>
+      <button class="btn btn-ghost" onclick="backToLearn()">📚 继续选课</button>
+      <button class="btn btn-ghost" onclick="backToApp()">🏠 返回首页</button>
+    </div>
+  </div>
+</section>
+
+<!-- 成就解锁弹窗 -->
+<div class="modal-mask" id="achModal">
+  <div class="ach-unlock pop-in">
+    <div class="ach-unlock-rays"></div>
+    <div class="ach-unlock-icon" id="achUnlockIcon">🏆</div>
+    <h3>解锁新成就！</h3>
+    <div class="ach-unlock-name" id="achUnlockName"></div>
+    <div class="ach-unlock-desc" id="achUnlockDesc"></div>
+    <button class="btn btn-primary" onclick="closeAchModal()">太棒了！</button>
+  </div>
+</div>
+
+<!-- 彩带容器 -->
+<div id="confettiBox"></div>
+
+<script src="js/data.js"></script>
+<script src="js/gen.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
