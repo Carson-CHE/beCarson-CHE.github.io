@@ -84,8 +84,9 @@ const GENERATORS = {
     const fromLeft = Math.random() < 0.5;
     const pos = fromLeft ? idx + 1 : n - idx;
     const cn = ["一","二","三","四","五","六"];
+    const em = e => `<span class="emoji">${e}</span>`;
     return {
-      q: `${row.join(" ")}<br>小动物排排队，${row[idx]} 从<b>${fromLeft ? "左" : "右"}</b>边数排第几？`,
+      q: `<span class="emoji-row">${row.map(em).join(" ")}</span>小动物排排队，${em(row[idx])}从<b>${fromLeft ? "左" : "右"}</b>边数排第几？`,
       a: pos, type: "num",
       hint: `从${fromLeft ? "左" : "右"}边开始数：第${cn[0]}、第${cn[1]}…… 一边指一边数。`,
       explain: `从${fromLeft ? "左" : "右"}边数，${row[idx]} 排第 ${pos}。`

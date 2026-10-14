@@ -551,7 +551,7 @@ function renderQuestion() {
   const qz = state.quiz;
   const q = qz.qs[qz.idx % qz.qs.length];
   qz.cur = q;
-  $("quizQ").innerHTML = q.q;
+  $("quizQ").innerHTML = `<div class="quiz-q-inner">${q.q}</div>`;
   $("quizFeedback").textContent = "";
   $("quizFeedback").style.color = "";
   $("quizStreak").textContent = qz.streakNow >= 2 ? `🔥 连续答对 ${qz.streakNow} 题！` : "";
