@@ -132,6 +132,23 @@ input { font-family: inherit; outline:none; }
 .grade-tab { flex:1; padding:.75rem; border-radius:1rem; font-weight:700; font-size:1rem; background:#fff; color:#6B7C93; box-shadow:0 2px 8px rgba(0,0,0,.05); transition:.2s; }
 .grade-tab.active { background:linear-gradient(135deg,var(--p),var(--p2)); color:#fff; }
 .unit-list { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:1rem; }
+
+/* 年级综合测试栏目 */
+.mix-card {
+  grid-column:1/-1; display:flex; align-items:center; gap:1rem;
+  background:linear-gradient(135deg,#4A90E2,#7E57C2); color:#fff;
+  border-radius:var(--radius); padding:1.1rem 1.3rem;
+  box-shadow:0 8px 24px rgba(74,144,226,.28); cursor:pointer; transition:.2s;
+}
+.mix-card:hover { transform:translateY(-3px); box-shadow:0 12px 30px rgba(74,144,226,.34); }
+.mix-icon { font-size:2.1rem; line-height:1; }
+.mix-info { flex:1; min-width:0; }
+.mix-title { font-weight:800; font-size:1.08rem; }
+.mix-desc { font-size:.8rem; opacity:.92; margin-top:.2rem; }
+.mix-side { text-align:right; display:flex; flex-direction:column; align-items:flex-end; gap:.3rem; }
+.mix-best { font-size:.75rem; background:rgba(255,255,255,.22); padding:.2rem .6rem; border-radius:999px; white-space:nowrap; }
+.mix-best.none { background:rgba(255,255,255,.12); opacity:.85; }
+.mix-go { font-weight:800; font-size:.86rem; white-space:nowrap; }
 .unit-card { background:var(--card); border-radius:var(--radius); padding:1.2rem; box-shadow:var(--shadow); cursor:pointer; transition:.2s; position:relative; overflow:hidden; }
 .unit-card:hover { transform:translateY(-3px); }
 .unit-card::before { content:""; position:absolute; left:0; top:0; bottom:0; width:6px; border-radius:var(--radius) 0 0 var(--radius); background:var(--p); opacity:.3; }
@@ -323,6 +340,10 @@ body { overscroll-behavior-y: contain; -webkit-tap-highlight-color: transparent;
   .grade-tabs { gap:.4rem; }
   .grade-tab { padding:.7rem .4rem; font-size:.9rem; }
   .unit-list { grid-template-columns:1fr; gap:.7rem; }
+  .mix-card { flex-wrap:wrap; padding:1rem; gap:.7rem; }
+  .mix-info { flex:1 1 60%; }
+  .mix-side { flex:1 1 100%; flex-direction:row; align-items:center; justify-content:space-between; }
+  .mix-desc { font-size:.75rem; }
   .unit-card, .mode-btn { padding:1rem; }
 
   /* 弹窗 */

@@ -308,7 +308,7 @@ function renderGradeCards() {
         <div class="grade-stats">
           <span>📚 ${g.units.length} 个单元</span>
           <span>✅ 已点亮 ${done} 个</span>
-          ${best != null ? `<span>📝 测试最佳 ${best} 分</span>` : ""}
+          ${best != null ? `<span>📝 综合测试最佳 ${best} 分</span>` : ""}
         </div>
       </div>`;
   }).join("");
@@ -336,7 +336,21 @@ function renderLearn() {
     `<button class="grade-tab ${state.gradeTab === g.grade ? "active" : ""}" onclick="setGradeTab(${g.grade})">${g.name}</button>`).join("");
   const g = CURRICULUM.find(x => x.grade === state.gradeTab);
   const d = state.data;
-  $("unitList").innerHTML = g.units.map(u => {
+  const plan = mixPlan(g.units.length);
+  const best = d.gradeTests[g.grade];
+  const mixCard = `
+    <div class="mix-card" onclick="startGradeTest(${g.grade})">
+      <div class="mix-icon">📝</div>
+      <div class="mix-info">
+        <div class="mix-title">${g.name}综合测试</div>
+        <div class="mix-desc">${g.units.length} 个单元各抽 3-5 题 · 共 ${plan.min}~${plan.max} 题 · 限时 40 分钟</div>
+      </div>
+      <div class="mix-side">
+        <div class="mix-best ${best == null ? "none" : ""}">${best == null ? "尚未挑战" : "最佳 " + best + " 分"}</div>
+        <span class="mix-go">开始 ▶</span>
+      </div>
+    </div>`;
+  $("unitList").innerHTML = mixCard + g.units.map(u => {
     const p = d.units[u.id] || {};
     const stars = p.stars || 0;
     return `
@@ -478,6 +492,17 @@ const MODE_CONF = {
   retrain:  { name: "📒 错题重练",   count: 10,       time: 0,   hint: true }
 };
 
+/* 年级综合测试配置：每单元 3-5 题随机组合，全卷不超过 50 题，限时 40 分钟 */
+const MIX_TEST = { perMin: 3, perMax: 5, maxQ: 50, time: 40 * 60 };
+
+/* 某年级综合测试的题量区间，用于界面展示 */
+function mixPlan(unitCount) {
+  return {
+    min: unitCount * MIX_TEST.perMin,
+    max: Math.min(MIX_TEST.maxQ, unitCount * MIX_TEST.perMax)
+  };
+}
+
 function startQuiz(mode, gradeMixed = false, presetQs = null) {
   closeModal("unitModal");
   const { grade, unit } = state.selUnit;
@@ -489,17 +514,27 @@ function startQuiz(mode, gradeMixed = false, presetQs = null) {
   if (presetQs) {
     presetQs.forEach(q => qs.push(q));
   } else if (isGradeTest) {
-    const perUnit = Math.ceil(15 / grade.units.length);
-    for (const u of grade.units) {
+    // 每个单元随机分配 3~5 题；超出 50 题上限时，优先把各单元题量压回 3 题下限
+    const counts = grade.units.map(() =>
+      MIX_TEST.perMin + Math.floor(Math.random() * (MIX_TEST.perMax - MIX_TEST.perMin + 1)));
+    let sum = counts.reduce((a, b) => a + b, 0);
+    while (sum > MIX_TEST.maxQ) {
+      const cand = counts.map((c, i) => ({ c, i })).filter(x => x.c > MIX_TEST.perMin);
+      if (!cand.length) break;
+      const pick = cand[Math.floor(Math.random() * cand.length)];
+      counts[pick.i]--; sum--;
+    }
+    grade.units.forEach((u, ui) => {
       let c = 0, g2 = 0;
-      while (c < perUnit && g2++ < 30) {
+      while (c < counts[ui] && g2++ < counts[ui] * 20) {
         const q = makeQuestion(u.gen);
         const key = stripHtml(q.q);
         if (seen.has(key)) continue;
         seen.add(key); qs.push(q); c++;
       }
-    }
+    });
     shuffle(qs);
+    if (qs.length > MIX_TEST.maxQ) qs.length = MIX_TEST.maxQ; // 单元过多时的兜底
   } else {
     const n = mode === "oral" ? 40 : conf.count;
     let guard = 0;
@@ -515,10 +550,14 @@ function startQuiz(mode, gradeMixed = false, presetQs = null) {
     mode, conf, grade, unit, qs, gradeMixed: isGradeTest,
     idx: 0, correct: 0, streakNow: 0, bestStreak: 0,
     answers: [],
-    total: Math.min(isGradeTest ? 15 : conf.count, qs.length),
-    timeLeft: isGradeTest ? 300 : conf.time, timerId: null, startAt: Date.now()
+    total: isGradeTest ? qs.length : Math.min(conf.count, qs.length),
+    timeLeft: isGradeTest ? MIX_TEST.time : conf.time,
+    timeTotal: isGradeTest ? MIX_TEST.time : conf.time,
+    timerId: null, startAt: Date.now()
   };
-  $("quizTitle").textContent = `${conf.name} · ${unit.title}`;
+  $("quizTitle").textContent = isGradeTest
+    ? `📝 综合测试 · ${grade.name}（40分钟）`
+    : `${conf.name} · ${unit.title}`;
   $("quizTimer").style.display = state.quiz.timeLeft ? "block" : "none";
   showView("quizView");
   if (state.quiz.timeLeft) startTimer();
@@ -541,9 +580,8 @@ function updateTimerText() {
   $("quizTimer").textContent = "⏱ " + (t >= 60 ? `${Math.floor(t / 60)}:${String(t % 60).padStart(2, "0")}` : t + "s");
   $("quizTimer").style.color = t <= 10 ? "#FF5252" : "";
   // 计时模式同步推进进度条
-  if (qz.timeLeft > 0) {
-    const totalTime = qz.gradeMixed ? 300 : qz.conf.time;
-    $("quizProgressFill").style.width = Math.min(100, (totalTime - t) / totalTime * 100) + "%";
+  if (qz.timeLeft > 0 && qz.timeTotal) {
+    $("quizProgressFill").style.width = Math.min(100, (qz.timeTotal - t) / qz.timeTotal * 100) + "%";
   }
 }
 
@@ -560,9 +598,8 @@ function renderQuestion() {
   $("quizSubmit").disabled = false;
 
   // 进度条：计时模式按时间推进，其余按题数推进
-  if (qz.timeLeft) {
-    const totalTime = qz.gradeMixed ? 300 : qz.conf.time;
-    $("quizProgressFill").style.width = Math.min(100, (totalTime - qz.timeLeft) / totalTime * 100) + "%";
+  if (qz.timeLeft && qz.timeTotal) {
+    $("quizProgressFill").style.width = Math.min(100, (qz.timeTotal - qz.timeLeft) / qz.timeTotal * 100) + "%";
   } else {
     $("quizProgressFill").style.width = Math.min(100, qz.idx / qz.total * 100) + "%";
   }
