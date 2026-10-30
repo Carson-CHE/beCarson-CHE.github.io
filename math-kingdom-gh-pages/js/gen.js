@@ -254,17 +254,15 @@ const GENERATORS = {
   }
 };
 
-/* ---------- 进阶练习：40以内加减法（凑十法 / 破十法，分步解题） ---------- */
-/* 初级：两位数 ± 一位数 */
+/* ---------- 进阶练习：分步解题（凑十法 / 破十法） ---------- */
+/* 初级：20以内加减法（进位加 + 退位减，结果不超过 20） */
 function advAddA() {
   let a = 0, b = 0, need = 0, rest = 0, guard = 0;
   do {
-    a = rnd(11, 35);
-    const o = a % 10;
-    if (o === 0) continue;
-    need = 10 - o;                       // 还差几凑成整十
-    const maxB = Math.min(9, 40 - a);
-    if (maxB <= need) continue;          // 必须进位，才有“凑十”
+    a = rnd(5, 9);
+    need = 10 - a;                       // 还差几凑成 10
+    const maxB = Math.min(9, 20 - a);    // 和不超过 20
+    if (maxB <= need) continue;
     b = rnd(need + 1, maxB);
     rest = b - need;
   } while (!b && guard++ < 200);
@@ -321,7 +319,7 @@ function advSplit(a) {
 function advSubA() {
   let a = 0, b = 0, guard = 0;
   do {
-    a = rnd(11, 40);
+    a = rnd(11, 18);                   // 十几减几，结果在 20 以内
     const o = a % 10;
     if (o === 0 || o >= 9) continue;   // 个位必须不够减
     b = rnd(o + 1, 9);

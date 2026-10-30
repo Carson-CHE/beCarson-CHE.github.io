@@ -367,8 +367,8 @@ function renderLearn() {
       <div class="adv-card-head">
         <div class="adv-icon">🚀</div>
         <div class="adv-info">
-          <div class="adv-title">进阶练习 · 40 以内加减法</div>
-          <div class="adv-desc">用<span class="adv-tag">凑十法</span>和<span class="adv-tag">破十法</span>，一步一步算出答案</div>
+          <div class="adv-title">进阶练习 · 分步加减法</div>
+          <div class="adv-desc">初级练<span class="adv-tag">20 以内</span>，进阶练<span class="adv-tag">40 以内</span>，用凑十法和破十法一步一步算</div>
         </div>
       </div>
       <div class="adv-btns">${lvBtn("a")}${lvBtn("b")}</div>
@@ -534,7 +534,7 @@ const MODE_CONF = {
 
 /* 进阶练习：两档难度 */
 const ADVANCE_LEVELS = {
-  a: { name: "两位数 ± 一位数", title: "两位数 ± 一位数", short: "初级" },
+  a: { name: "20 以内加减法", title: "20 以内加减法", short: "初级" },
   b: { name: "两位数 ± 两位数", title: "两位数 ± 两位数", short: "进阶" }
 };
 
