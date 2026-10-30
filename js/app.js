@@ -16,6 +16,7 @@ function blankData() {
     days: {},            // "2026-10-13": {q, c}
     units: {},           // unitId: {stars, best, attempts, totalQ, correctQ, modes:{}}
     gradeTests: {},      // grade: bestScore
+    advance: {},         // 进阶练习难度 a/b: {attempts,totalQ,correctQ,best,stars}
     ach: {},             // achId: dateStr
     wrongs: []           // 错题本: {q, a, type, choices, hint, explain, unitTitle, icon, date, mastered, masteredCount}
   };
@@ -350,7 +351,30 @@ function renderLearn() {
         <span class="mix-go">开始 ▶</span>
       </div>
     </div>`;
-  $("unitList").innerHTML = mixCard + g.units.map(u => {
+  const advCard = g.grade === 1 ? (() => {
+    const lvBtn = (lv) => {
+      const info = ADVANCE_LEVELS[lv];
+      const rec = d.advance[lv] || {};
+      return `
+        <button class="adv-lv lv-${lv}" onclick="startAdvance('${lv}')">
+          <span class="adv-lv-name">${info.short}</span>
+          <span class="adv-lv-desc">${info.name}</span>
+          <span class="adv-lv-best">${rec.best == null ? "尚未挑战" : "最佳 " + rec.best + " 分"}</span>
+        </button>`;
+    };
+    return `
+    <div class="adv-card">
+      <div class="adv-card-head">
+        <div class="adv-icon">🚀</div>
+        <div class="adv-info">
+          <div class="adv-title">进阶练习 · 40 以内加减法</div>
+          <div class="adv-desc">用<span class="adv-tag">凑十法</span>和<span class="adv-tag">破十法</span>，一步一步算出答案</div>
+        </div>
+      </div>
+      <div class="adv-btns">${lvBtn("a")}${lvBtn("b")}</div>
+    </div>`;
+  })() : "";
+  $("unitList").innerHTML = mixCard + advCard + g.units.map(u => {
     const p = d.units[u.id] || {};
     const stars = p.stars || 0;
     return `
@@ -484,12 +508,34 @@ function startRetrain() {
   startQuiz("retrain", false, qs);
 }
 
+/* 进阶练习：3 道加法 + 3 道减法，按难度 A/B 出题，逐题分步作答 */
+function startAdvance(level) {
+  const lv = level === "b" ? "b" : "a";
+  const gens = ADVANCE_GENERATORS[lv];
+  const qs = [];
+  for (let i = 0; i < 3; i++) qs.push(gens.add());
+  for (let i = 0; i < 3; i++) qs.push(gens.sub());
+  state.selUnit = {
+    grade: CURRICULUM[0],
+    unit: { id: "adv_" + lv, title: ADVANCE_LEVELS[lv].title, icon: "🚀" }
+  };
+  startQuiz("advance", false, shuffle(qs));
+  if (state.quiz) state.quiz.level = lv;
+}
+
 /* ===================== 答题引擎 ===================== */
 const MODE_CONF = {
   oral:     { name: "⚡ 口算大挑战", count: Infinity, time: 60,  hint: false },
   practice: { name: "✏️ 数学练习",   count: 10,       time: 0,   hint: true },
   test:     { name: "📝 数学测试",   count: 10,       time: 180, hint: false },
-  retrain:  { name: "📒 错题重练",   count: 10,       time: 0,   hint: true }
+  retrain:  { name: "📒 错题重练",   count: 10,       time: 0,   hint: true },
+  advance:  { name: "🚀 进阶练习",   count: 6,        time: 0,   hint: false }
+};
+
+/* 进阶练习：两档难度 */
+const ADVANCE_LEVELS = {
+  a: { name: "两位数 ± 一位数", title: "两位数 ± 一位数", short: "初级" },
+  b: { name: "两位数 ± 两位数", title: "两位数 ± 两位数", short: "进阶" }
 };
 
 /* 年级综合测试配置：每单元 3-5 题随机组合，全卷不超过 50 题，限时 40 分钟 */
@@ -604,20 +650,116 @@ function renderQuestion() {
     $("quizProgressFill").style.width = Math.min(100, qz.idx / qz.total * 100) + "%";
   }
 
+  if (q.steps) {
+    qz.stepIdx = 0; qz.stepVals = []; qz.stepWrong = false; qz.stepTries = 0;
+    $("quizChoices").style.display = "none";
+    $("quizInputWrap").style.display = "none";
+    $("quizSubmit").style.display = "inline-flex";
+    $("quizSubmit").textContent = "下一步 ✔";
+    $("quizSteps").style.display = "block";
+    renderSteps();
+    return;
+  }
+  $("quizSteps").style.display = "none";
+
   if (q.type === "choice") {
     $("quizChoices").style.display = "grid";
     $("quizInputWrap").style.display = "none";
     $("quizSubmit").style.display = "none";
+    $("quizSubmit").textContent = "确定 ✔";
     $("quizChoices").innerHTML = q.choices.map(c =>
       `<button class="choice-btn" onclick="answerChoice(this,'${String(c).replace(/'/g, "\\'")}')">${c}</button>`).join("");
   } else {
     $("quizChoices").style.display = "none";
     $("quizInputWrap").style.display = "block";
     $("quizSubmit").style.display = "inline-flex";
+    $("quizSubmit").textContent = "确定 ✔";
     const inp = $("quizInput");
     inp.value = "";
     setTimeout(() => inp.focus(), 50);
   }
+}
+
+/* ---------- 进阶练习：分步解题 ---------- */
+function renderSteps() {
+  const qz = state.quiz, q = qz.cur;
+  const items = q.steps.map((s, i) => {
+    let slot;
+    if (i < qz.stepIdx) slot = `<span class="adv-val">${qz.stepVals[i]}</span>`;
+    else if (i === qz.stepIdx) slot = `<input class="adv-input" id="advStepInput" type="number" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="?">`;
+    else slot = `<span class="adv-blank">?</span>`;
+    const cls = i < qz.stepIdx ? "done" : i === qz.stepIdx ? "active" : "todo";
+    return `<div class="adv-step ${cls}">
+      <span class="adv-step-no">${i + 1}</span>
+      <span class="adv-step-text">${s.prompt.replace("{}", slot)}</span>
+    </div>`;
+  }).join("");
+  $("quizSteps").innerHTML = `
+    <div class="adv-head">
+      <span class="adv-method">${q.method || "分步解题"}</span>
+      <span class="adv-expr">${q.q}</span>
+    </div>${items}`;
+  const inp = $("advStepInput");
+  if (inp) {
+    inp.addEventListener("keydown", e => { if (e.key === "Enter") submitStep(); });
+    setTimeout(() => inp.focus(), 50);
+  }
+}
+
+/* 校验当前这一步，答对前进；错两次直接给出答案并继续 */
+function submitStep() {
+  const qz = state.quiz;
+  if (!qz || qz.locked || !qz.cur || !qz.cur.steps) return;
+  const inp = $("advStepInput");
+  if (!inp) return;
+  const val = inp.value.trim();
+  if (val === "") {
+    inp.classList.add("shake");
+    setTimeout(() => inp.classList.remove("shake"), 400);
+    return;
+  }
+  const step = qz.cur.steps[qz.stepIdx];
+  const ok = parseFloat(val) === parseFloat(step.ans);
+  if (!ok) {
+    beep(false);
+    inp.classList.add("shake");
+    setTimeout(() => inp.classList.remove("shake"), 400);
+    inp.value = "";
+    qz.stepTries++;
+    if (qz.stepTries < 2) {
+      $("quizFeedback").textContent = "再想一想：看看这一步要用到哪两个数～";
+      $("quizFeedback").style.color = "#E67E22";
+      return;
+    }
+    qz.stepWrong = true;
+    qz.stepVals[qz.stepIdx] = step.ans;
+    qz.stepTries = 0;
+    qz.stepIdx++;
+    $("quizFeedback").textContent = `这一步的答案是 ${step.ans}，跟着继续算吧～`;
+    $("quizFeedback").style.color = "#FF5252";
+    renderSteps();
+    finishStepIfDone();
+    return;
+  }
+  beep(true);
+  qz.stepTries = 0;
+  qz.stepVals[qz.stepIdx] = step.ans;
+  qz.stepIdx++;
+  $("quizFeedback").textContent = "";
+  $("quizFeedback").style.color = "";
+  renderSteps();
+  finishStepIfDone();
+}
+
+/* 所有步骤完成 → 交给统一的判题/结算流程 */
+function finishStepIfDone() {
+  const qz = state.quiz, q = qz.cur;
+  if (qz.stepIdx < q.steps.length) return;
+  qz.locked = true;
+  setTimeout(() => {
+    if (state.quiz !== qz) return;
+    afterAnswer(!qz.stepWrong, qz.stepWrong ? "步骤有误" : String(q.a));
+  }, 350);
 }
 
 /* 数字键盘 */
@@ -659,6 +801,8 @@ function answerChoice(btn, val) {
 /* 数字题作答 */
 function submitAnswer() {
   const qz = state.quiz;
+  if (!qz) return;
+  if (qz.cur && qz.cur.steps) return submitStep(); // 进阶练习走分步校验
   if (qz.locked) return;
   const inp = $("quizInput");
   if (inp.value.trim() === "") { inp.classList.add("shake"); setTimeout(() => inp.classList.remove("shake"), 400); return; }
@@ -729,6 +873,10 @@ function endQuiz() {
   if (qz.mode === "oral") {
     score = correct * 5;
     stars = correct >= 15 ? 3 : correct >= 10 ? 2 : correct >= 5 ? 1 : 0;
+  } else if (qz.mode === "advance") {
+    // 进阶练习共 6 题：6 题全对 3 星、错 1-2 题 2 星、错 3 题 1 星
+    score = Math.round(acc * 100);
+    stars = correct >= 6 ? 3 : correct >= 4 ? 2 : correct >= 3 ? 1 : 0;
   } else {
     score = Math.round(acc * 100);
     stars = acc >= 0.9 ? 3 : acc >= 0.7 ? 2 : acc >= 0.4 ? 1 : 0;
@@ -743,6 +891,15 @@ function endQuiz() {
   } else if (qz.mode === "retrain") {
     // 错题重练：掌握标记已在作答时写入，这里只统计总量
     d.retrainCount = (d.retrainCount || 0) + 1;
+  } else if (qz.mode === "advance") {
+    // 进阶练习：按难度分别记录
+    const lv = qz.level || "a";
+    const rec = d.advance[lv] = d.advance[lv] || { attempts: 0, totalQ: 0, correctQ: 0, best: null, stars: 0 };
+    rec.attempts++;
+    rec.totalQ += answered;
+    rec.correctQ += correct;
+    rec.stars = Math.max(rec.stars, stars);
+    rec.best = rec.best == null ? score : Math.max(rec.best, score);
   } else {
     const u = d.units[qz.unit.id] = d.units[qz.unit.id] || { stars: 0, best: null, attempts: 0, totalQ: 0, correctQ: 0, modes: {} };
     u.attempts++;
@@ -814,6 +971,7 @@ function endQuiz() {
   $("resultRetry").onclick = () => {
     if (qz.gradeMixed) return startGradeTest(qz.grade.grade);
     if (qz.mode === "retrain") return startRetrain();
+    if (qz.mode === "advance") return startAdvance(qz.level || "a");
     startQuiz(qz.mode);
   };
   showView("resultView");

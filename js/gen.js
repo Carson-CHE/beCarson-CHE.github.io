@@ -254,6 +254,124 @@ const GENERATORS = {
   }
 };
 
+/* ---------- 进阶练习：40以内加减法（凑十法 / 破十法，分步解题） ---------- */
+/* 初级：两位数 ± 一位数 */
+function advAddA() {
+  let a = 0, b = 0, need = 0, rest = 0, guard = 0;
+  do {
+    a = rnd(11, 35);
+    const o = a % 10;
+    if (o === 0) continue;
+    need = 10 - o;                       // 还差几凑成整十
+    const maxB = Math.min(9, 40 - a);
+    if (maxB <= need) continue;          // 必须进位，才有“凑十”
+    b = rnd(need + 1, maxB);
+    rest = b - need;
+  } while (!b && guard++ < 200);
+  const ten = a + need, sum = a + b;
+  return {
+    q: `${a} + ${b} = ?`, a: sum, type: "num", method: "凑十法",
+    hint: `凑十法：把 ${b} 分成 ${need} 和 ${rest}。`,
+    explain: `${a} + ${need} = ${ten}，${ten} + ${rest} = ${sum}。`,
+    steps: [
+      { prompt: `${a} 再添 {} 就到 ${ten}`, ans: need },
+      { prompt: `把 ${b} 分成 ${need} 和 {}`, ans: rest },
+      { prompt: `${a} + ${need} = {}`, ans: ten },
+      { prompt: `${ten} + ${rest} = {}`, ans: sum }
+    ]
+  };
+}
+
+/* 进阶：两位数 ± 两位数 */
+function advAddB() {
+  let a = 0, b = 0, need = 0, rest = 0, guard = 0;
+  do {
+    a = rnd(11, 26);
+    const o = a % 10;
+    if (o === 0) continue;
+    need = 10 - o;
+    const minB = Math.max(10, need + 1);
+    const maxB = 40 - a;
+    if (maxB < minB) continue;
+    b = rnd(minB, maxB);
+    rest = b - need;
+    if (rest < 1 || a + b > 40) b = 0;
+  } while (!b && guard++ < 300);
+  const ten = a + need, sum = a + b;
+  return {
+    q: `${a} + ${b} = ?`, a: sum, type: "num", method: "凑十法",
+    hint: `凑十法：把 ${b} 分成 ${need} 和 ${rest}。`,
+    explain: `${a} + ${need} = ${ten}，${ten} + ${rest} = ${sum}。`,
+    steps: [
+      { prompt: `${a} 再添 {} 就到 ${ten}`, ans: need },
+      { prompt: `把 ${b} 分成 ${need} 和 {}`, ans: rest },
+      { prompt: `${a} + ${need} = {}`, ans: ten },
+      { prompt: `${ten} + ${rest} = {}`, ans: sum }
+    ]
+  };
+}
+
+/* 破十法拆分：把 a 分成 (整十部分) 和 (10 + 个位) */
+function advSplit(a) {
+  const o = a % 10;
+  if (a < 20) return { q: o, r: 10 };                       // 13 → 3 和 10
+  return { q: (Math.floor(a / 10) - 1) * 10, r: 10 + o };   // 32 → 20 和 12
+}
+
+function advSubA() {
+  let a = 0, b = 0, guard = 0;
+  do {
+    a = rnd(11, 40);
+    const o = a % 10;
+    if (o === 0 || o >= 9) continue;   // 个位必须不够减
+    b = rnd(o + 1, 9);
+  } while (!b && guard++ < 200);
+  const { q: q10, r: r10 } = advSplit(a);
+  const res = r10 - b, ans = q10 + res;
+  return {
+    q: `${a} − ${b} = ?`, a: ans, type: "num", method: "破十法",
+    hint: `破十法：把 ${a} 分成 ${q10} 和 ${r10}，先算 ${r10} − ${b}。`,
+    explain: `${r10} − ${b} = ${res}，${q10} + ${res} = ${ans}。`,
+    steps: [
+      { prompt: `把 ${a} 分成 ${q10} 和 {}`, ans: r10 },
+      { prompt: `${r10} − ${b} = {}`, ans: res },
+      { prompt: `${q10} + ${res} = {}`, ans: ans }
+    ]
+  };
+}
+
+function advSubB() {
+  let a = 0, b = 0, guard = 0;
+  do {
+    a = rnd(20, 40);
+    const oa = a % 10;
+    b = rnd(10, a - 1);
+    const ob = b % 10;
+    if (!(oa < ob)) b = 0;             // 个位不够减，才用破十法
+  } while (!b && guard++ < 300);
+  const oa = a % 10, ob = b % 10;
+  const qA = (Math.floor(a / 10) - 1) * 10, rA = 10 + oa;   // 35 → 20 和 15
+  const qB = Math.floor(b / 10) * 10;                       // 17 → 10 和 7
+  const resOnes = rA - ob, resTens = qA - qB;
+  const ans = resTens + resOnes;
+  return {
+    q: `${a} − ${b} = ?`, a: ans, type: "num", method: "破十法",
+    hint: `破十法：把 ${a} 分成 ${qA} 和 ${rA}，把 ${b} 分成 ${qB} 和 ${ob}。`,
+    explain: `${rA} − ${ob} = ${resOnes}，${qA} − ${qB} = ${resTens}，${resTens} + ${resOnes} = ${ans}。`,
+    steps: [
+      { prompt: `把 ${a} 分成 ${qA} 和 {}`, ans: rA },
+      { prompt: `把 ${b} 分成 ${qB} 和 {}`, ans: ob },
+      { prompt: `${rA} − ${ob} = {}`, ans: resOnes },
+      { prompt: `${qA} − ${qB} = ${resTens}，${resTens} + ${resOnes} = {}`, ans: ans }
+    ]
+  };
+}
+
+const ADVANCE_GENERATORS = {
+  a: { add: advAddA, sub: advSubA },
+  b: { add: advAddB, sub: advSubB }
+};
+
 function cnNum(n) {
   const cn = ["零","一","二","三","四","五","六","七","八","九","十"];
   if (n <= 10) return cn[n];

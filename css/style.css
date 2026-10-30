@@ -149,6 +149,69 @@ input { font-family: inherit; outline:none; }
 .mix-best { font-size:.75rem; background:rgba(255,255,255,.22); padding:.2rem .6rem; border-radius:999px; white-space:nowrap; }
 .mix-best.none { background:rgba(255,255,255,.12); opacity:.85; }
 .mix-go { font-weight:800; font-size:.86rem; white-space:nowrap; }
+
+/* 一年级 · 进阶练习（凑十法 / 破十法） */
+.adv-card {
+  grid-column:1/-1; background:var(--card); border-radius:var(--radius);
+  padding:1.1rem 1.3rem; box-shadow:var(--shadow); border:2px solid #E6F0FF;
+}
+.adv-card-head { display:flex; align-items:center; gap:.9rem; }
+.adv-icon { font-size:2.1rem; line-height:1; }
+.adv-info { flex:1; min-width:0; }
+.adv-title { font-weight:800; font-size:1.06rem; color:#2D3748; }
+.adv-desc { font-size:.8rem; color:var(--text2); margin-top:.25rem; }
+.adv-tag {
+  display:inline-block; background:#EBF5FF; color:var(--p); font-weight:700;
+  border-radius:999px; padding:.05rem .45rem; margin:0 .15rem; font-size:.78rem;
+}
+.adv-btns { display:grid; grid-template-columns:1fr 1fr; gap:.7rem; margin-top:.9rem; }
+.adv-lv {
+  display:flex; flex-direction:column; align-items:flex-start; gap:.15rem;
+  padding:.75rem .9rem; border-radius:.9rem; text-align:left;
+  background:#F7FAFC; border:2px solid #E2E8F0; transition:.15s;
+}
+.adv-lv:hover { transform:translateY(-2px); border-color:var(--p2); background:#fff; }
+.adv-lv.lv-a { border-color:#BEE3F8; background:#EBF8FF; }
+.adv-lv.lv-b { border-color:#FBD38D; background:#FFFAF0; }
+.adv-lv-name { font-weight:800; font-size:.95rem; color:var(--p); }
+.adv-lv.lv-b .adv-lv-name { color:#B7791F; }
+.adv-lv-desc { font-size:.8rem; color:var(--text2); }
+.adv-lv-best { font-size:.74rem; color:#A0AEC0; margin-top:.15rem; }
+
+/* 分步解题 */
+.quiz-steps { text-align:left; margin-bottom:.9rem; }
+.adv-head { display:flex; align-items:center; gap:.6rem; justify-content:center; margin-bottom:1rem; flex-wrap:wrap; }
+.adv-method { background:#EBF5FF; color:var(--p); font-weight:800; font-size:.85rem; padding:.2rem .6rem; border-radius:999px; }
+.adv-expr { font-size:1.35rem; font-weight:800; color:#2D3748; }
+.adv-step {
+  display:flex; align-items:center; gap:.6rem; padding:.65rem .8rem;
+  border-radius:.85rem; background:#F7FAFC; border:2px solid transparent;
+  margin-bottom:.55rem; font-size:1rem; color:var(--text2); transition:.2s;
+}
+.adv-step.active { background:#fff; border-color:var(--p2); color:var(--text); box-shadow:0 4px 14px rgba(74,144,226,.14); }
+.adv-step.done { background:#E8F5E9; color:#2E7D32; }
+.adv-step.todo { opacity:.6; }
+.adv-step-no {
+  flex-shrink:0; width:1.6rem; height:1.6rem; border-radius:50%;
+  background:#E2E8F0; color:#718096; font-weight:800; font-size:.8rem;
+  display:flex; align-items:center; justify-content:center;
+}
+.adv-step.active .adv-step-no { background:var(--p); color:#fff; }
+.adv-step.done .adv-step-no { background:var(--s); color:#fff; }
+.adv-step-text { flex:1; line-height:1.7; font-weight:700; }
+.adv-input {
+  width:4.2rem; padding:.15rem .3rem; margin:0 .2rem;
+  font-size:1.1rem; font-weight:800; text-align:center; color:var(--p);
+  border:none; border-bottom:3px solid var(--p); background:transparent;
+  vertical-align:baseline;
+}
+.adv-input::placeholder { color:#CBD5E0; font-weight:700; }
+.adv-input::-webkit-outer-spin-button, .adv-input::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
+.adv-val {
+  display:inline-block; min-width:2.2rem; text-align:center;
+  color:#2E7D32; font-weight:800; border-bottom:3px solid var(--s);
+}
+.adv-blank { display:inline-block; min-width:2.2rem; text-align:center; color:#A0AEC0; border-bottom:3px dashed #E2E8F0; }
 .unit-card { background:var(--card); border-radius:var(--radius); padding:1.2rem; box-shadow:var(--shadow); cursor:pointer; transition:.2s; position:relative; overflow:hidden; }
 .unit-card:hover { transform:translateY(-3px); }
 .unit-card::before { content:""; position:absolute; left:0; top:0; bottom:0; width:6px; border-radius:var(--radius) 0 0 var(--radius); background:var(--p); opacity:.3; }
@@ -377,6 +440,11 @@ body { overscroll-behavior-y: contain; -webkit-tap-highlight-color: transparent;
   .keypad-btn { padding:1rem 0; font-size:1.35rem; border-radius:.8rem; }
   .quiz-actions { position:sticky; bottom:env(safe-area-inset-bottom); }
   .quiz-actions .btn { flex:1; padding:.8rem; }
+  .adv-btns { gap:.55rem; }
+  .adv-lv { padding:.65rem .7rem; }
+  .adv-step { font-size:.95rem; padding:.6rem .7rem; gap:.5rem; }
+  .adv-expr { font-size:1.2rem; }
+  .adv-input { width:3.6rem; font-size:1.05rem; }
   .quiz-top { padding-left:.8rem; padding-right:.8rem; }
   .quiz-title { font-size:.95rem; }
 }
@@ -386,6 +454,7 @@ body { overscroll-behavior-y: contain; -webkit-tap-highlight-color: transparent;
   .logo-text { display:none; }
   .streak-pill, .star-pill { font-size:.75rem; padding:.3rem .5rem; }
   .quiz-q { font-size:1.3rem; }
+  .adv-btns { grid-template-columns:1fr; }
   .result-card { padding:1.3rem 1rem; }
   .result-detail { grid-template-columns:1fr; }
 }
